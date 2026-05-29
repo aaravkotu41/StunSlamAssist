@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "stunslamassist",
+  "version": "${version}",
+  "name": "Stun Slam Assist",
+  "description": "Auto-fires the mace follow-up after a qualifying airborne axe hit on a shielding target. Configurable chance and timing jitter.",
+  "authors": ["You"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.stunslamassist.StunSlamAssistClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
