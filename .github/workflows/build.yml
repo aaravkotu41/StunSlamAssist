@@ -1,0 +1,58 @@
+name: Build mod jar
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Generate Gradle wrapper
+        run: gradle wrapper --gradle-version 8.14
+
+      - name: Build mod
+        run: ./gradlew clean build -x test --no-daemon --stacktrace --info | tail -n 120
+
+      - name: Show what compiled
+        if: always()
+        run: |
+          echo "=== build/classes ==="
+          find build/classes -name '*.class' 2>/dev/null | head -50 || echo "NO CLASSES COMPILED"
+          echo "=== build/resources ==="
+          find build/resources -type f 2>/dev/null || echo "NO RESOURCES"
+          echo "=== build/libs ==="
+          ls -la build/libs/ 2>/dev/null || echo "NO LIBS"
+
+      - name: Pick the real mod jar
+        run: |
+          mkdir -p out
+          REAL=$(ls -S build/libs/*.jar | grep -v -- '-sources' | grep -v -- '-dev' | head -n1)
+          echo "Selected: $REAL"
+          SIZE=$(stat -c%s "$REAL")
+          echo "Size: $SIZE bytes"
+          if [ "$SIZE" -lt 5000 ]; then
+            echo "ERROR: jar too small ($SIZE bytes) - missing classes."
+            unzip -l "$REAL"
+            exit 1
+          fi
+          cp "$REAL" out/stunslamassist-1.0.0.jar
+
+      - name: Upload mod jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: stunslamassist-jar
+          path: out/stunslamassist-1.0.0.jar
+          if-no-files-found: error
